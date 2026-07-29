@@ -6,6 +6,14 @@
 <title>LabourPartner — Case Study</title>
 <meta name="description" content="Case study: LabourPartner, a labour-relations compliance platform that guides South African employers through discipline, grievance and dismissal procedures. Architecture, engineering decisions and known limitations.">
 <link rel="stylesheet" href="assets/site.css">
+<script>
+  /* Runs before first paint: applying a stored theme after the stylesheet
+     would flash the OS theme for a frame. Nothing else on the page needs JS. */
+  try {
+    var t = localStorage.getItem("theme");
+    if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+  } catch (e) { /* private mode: fall back to the OS preference */ }
+</script>
 </head>
 <body>
 
@@ -38,8 +46,12 @@
       <li><a href="#product">02 &nbsp;What it does</a></li>
       <li><a href="#architecture">03 &nbsp;Architecture</a></li>
       <li><a href="#decisions">04 &nbsp;Decisions</a></li>
-      <li><a href="#rigour">05 &nbsp;Rigour</a></li>
+      <li><a href="#deployment">05 &nbsp;Deployment</a></li>
+      <li><a href="#rigour">06 &nbsp;Rigour</a></li>
     </ol>
+    <button class="theme" type="button" id="theme" aria-live="polite">
+      <span class="theme__off">Dark</span><span class="theme__on">Light</span>
+    </button>
   </div>
 </nav>
 
@@ -176,8 +188,118 @@
     </div>
   </section>
 
-  <section class="block" id="rigour">
+  <section class="block" id="deployment">
     <p class="block__num">05</p>
+    <div class="block__body">
+      <h2>Deployment</h2>
+      <p>Two repositories, two pipelines, one production environment. The API deploys to Azure App Service and the client to Azure Static Web Apps, each from its own GitHub Actions workflow on merge to <code>main</code>. Database migrations are a separate, deliberately narrower workflow.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 640 132" role="img" xmlns="http://www.w3.org/2000/svg">
+          <title>Deployment pipeline: a push to main triggers build and test; the deploy job is gated on tests passing, then hands the build to Azure App Service.</title>
+          <g fill="none" stroke="currentColor" stroke-width="1" font-family="ui-monospace, Consolas, monospace" font-size="11">
+            <rect x="1" y="34" width="120" height="44"></rect>
+            <text x="16" y="60" fill="currentColor" stroke="none">git push main</text>
+
+            <rect x="169" y="34" width="140" height="44"></rect>
+            <text x="184" y="54" fill="currentColor" stroke="none">build + test</text>
+            <text x="184" y="70" fill="currentColor" stroke="none" opacity="0.6">229 tests</text>
+
+            <rect x="357" y="34" width="120" height="44"></rect>
+            <text x="372" y="60" fill="currentColor" stroke="none">deploy</text>
+
+            <rect x="525" y="34" width="114" height="44"></rect>
+            <text x="540" y="54" fill="currentColor" stroke="none">App Service</text>
+            <text x="540" y="70" fill="currentColor" stroke="none" opacity="0.6">production</text>
+
+            <path d="M121 56 L165 56" marker-end="url(#ar)"></path>
+            <path d="M309 56 L353 56" marker-end="url(#ar)"></path>
+            <path d="M477 56 L521 56" marker-end="url(#ar)"></path>
+
+            <text x="313" y="24" fill="currentColor" stroke="none" font-size="10" opacity="0.75">gated</text>
+            <path d="M331 20 L347 20" stroke-dasharray="2 2"></path>
+            <text x="184" y="102" fill="currentColor" stroke="none" font-size="10" opacity="0.6">A failing test blocks the deploy.</text>
+          </g>
+          <defs>
+            <marker id="ar" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+        </svg>
+        <figcaption>The deploy job depends on the test job, so there is no path to production that skips the suite.</figcaption>
+      </figure>
+
+      <h3>Green does not mean live</h3>
+      <p>The workflow reports success when the build is handed over to Azure, not when the new code starts answering requests. App Service still has to start the new process and warm it, which takes one to three minutes. During that window the old build is serving and the pipeline is green.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 640 128" role="img" xmlns="http://www.w3.org/2000/svg">
+          <title>Timeline: the workflow reports success at handover, but the previous build keeps serving requests for one to three minutes while the new process warms up.</title>
+          <g fill="none" stroke="currentColor" stroke-width="1" font-family="ui-monospace, Consolas, monospace" font-size="11">
+            <path d="M1 62 L639 62"></path>
+            <path d="M120 54 L120 70"></path>
+            <path d="M430 54 L430 70"></path>
+
+            <text x="120" y="44" fill="currentColor" stroke="none" text-anchor="middle">CI green</text>
+            <text x="430" y="44" fill="currentColor" stroke="none" text-anchor="middle">actually live</text>
+
+            <path d="M120 88 L430 88" stroke="var(--pen)"></path>
+            <path d="M120 82 L120 94" stroke="var(--pen)"></path>
+            <path d="M430 82 L430 94" stroke="var(--pen)"></path>
+            <text x="275" y="112" fill="var(--pen)" stroke="none" text-anchor="middle">1&#8211;3 min &#183; old build still serving</text>
+
+            <text x="16" y="112" fill="currentColor" stroke="none" opacity="0.6">handover</text>
+            <text x="624" y="112" fill="currentColor" stroke="none" opacity="0.6" text-anchor="end">warm</text>
+          </g>
+        </svg>
+        <figcaption>Reading the green tick as "deployed" cost me a false alarm and a rollback of something that was working. The fix is procedural, not technical: poll the running application, not the pipeline.</figcaption>
+      </figure>
+
+      <h3>Verification order</h3>
+      <p>Because the two repositories deploy independently, order matters. The client calls the API, so the API goes first and is confirmed answering before the client that depends on it ships. Only then are the security assertions checked against the live application.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 640 176" role="img" xmlns="http://www.w3.org/2000/svg">
+          <title>Verification order: deploy and confirm the API first, then the client, then assert that secured endpoints reject unauthenticated requests in production.</title>
+          <g fill="none" stroke="currentColor" stroke-width="1" font-family="ui-monospace, Consolas, monospace" font-size="11">
+            <text x="1" y="16" fill="currentColor" stroke="none" opacity="0.6" font-size="10">1</text>
+            <rect x="24" y="1" width="330" height="40"></rect>
+            <text x="40" y="26" fill="currentColor" stroke="none">API deployed &#8594; poll until it answers</text>
+
+            <text x="1" y="72" fill="currentColor" stroke="none" opacity="0.6" font-size="10">2</text>
+            <rect x="24" y="57" width="330" height="40"></rect>
+            <text x="40" y="82" fill="currentColor" stroke="none">client deployed &#8594; load the app</text>
+
+            <text x="1" y="128" fill="currentColor" stroke="none" opacity="0.6" font-size="10">3</text>
+            <rect x="24" y="113" width="330" height="40" stroke="var(--pen)"></rect>
+            <text x="40" y="132" fill="var(--pen)" stroke="none">assert secured endpoints reject</text>
+            <text x="40" y="147" fill="currentColor" stroke="none" opacity="0.6">GET /api/License &#8594; 401, no credentials</text>
+
+            <path d="M189 41 L189 57" marker-end="url(#ar2)"></path>
+            <path d="M189 97 L189 113" marker-end="url(#ar2)"></path>
+
+            <text x="386" y="26" fill="currentColor" stroke="none" opacity="0.6" font-size="10">the client depends on it</text>
+            <text x="386" y="82" fill="currentColor" stroke="none" opacity="0.6" font-size="10">nothing depends on the client</text>
+            <text x="386" y="135" fill="currentColor" stroke="none" opacity="0.6" font-size="10">against production, not staging</text>
+          </g>
+          <defs>
+            <marker id="ar2" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+        </svg>
+        <figcaption>Step 3 is the one worth keeping. A fix that closes an endpoint is not done when it merges — it is done when the endpoint refuses an unauthenticated request in production.</figcaption>
+      </figure>
+
+      <div class="annotation">
+        <b>Where this is weakest</b>
+        <p>Database migrations run from a separate workflow that is not gated on the test suite, and data migrations keyed on business values fail open rather than loudly. Affected rows have to be checked by hand before and after. This is the part of the pipeline I trust least and the next thing I would harden.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="rigour">
+    <p class="block__num">06</p>
     <div class="block__body">
       <h2>Rigour</h2>
       <p>Compliance software fails quietly. A wrong clause does not throw an exception — it sits in a contract until someone contests it, so the work has to be verified rather than assumed.</p>
@@ -204,6 +326,22 @@
   <p>LabourPartner is a private commercial product. Its source is not published; this page is the case study.</p>
   <p><a href="https://github.com/johanccs">github.com/johanccs</a></p>
 </footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("theme");
+    btn.addEventListener("click", function () {
+      /* Resolve what is on screen now, which may come from the OS rather than
+         from a stored choice, then store the opposite. */
+      var current = root.dataset.theme
+        || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      var next = current === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try { localStorage.setItem("theme", next); } catch (e) { /* not persisted */ }
+    });
+  })();
+</script>
 
 </body>
 </html>

@@ -20,8 +20,12 @@
   --mono: ui-monospace, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
+/* Dark values live in one place and are applied by two selectors: the OS
+   preference, and an explicit data-theme set by the toggle. The explicit
+   selectors come last so a manual choice wins in BOTH directions — without
+   :root[data-theme="light"], a reader on a dark-mode OS could not force light. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #0e1114;
     --ink: #e8e6e1;
     --muted: #8e97a5;
@@ -30,6 +34,16 @@
     --pen: #e0645a;
     --cite: #7fa6e0;
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0e1114;
+  --ink: #e8e6e1;
+  --muted: #8e97a5;
+  --rule: #262a30;
+  --surface: #16191e;
+  --pen: #e0645a;
+  --cite: #7fa6e0;
 }
 
 *,
@@ -228,6 +242,12 @@ p { margin: 0 0 1.15rem; }
   border-block: 1px solid var(--rule);
 }
 
+.nav > .sheet {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .nav ol {
   list-style: none;
   display: flex;
@@ -236,6 +256,7 @@ p { margin: 0 0 1.15rem; }
   margin: 0;
   padding: 0.7rem 0;
   font: 400 0.8125rem/1.9 var(--sans);
+  flex: 1;
 }
 
 .nav a {
@@ -244,6 +265,31 @@ p { margin: 0 0 1.15rem; }
 }
 
 .nav a:hover { color: var(--ink); }
+
+/* theme toggle */
+.theme {
+  flex: none;
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font: 400 0.75rem/1 var(--mono);
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+}
+
+.theme:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.theme__on { display: none; }
+:root[data-theme="dark"] .theme__on { display: inline; }
+:root[data-theme="dark"] .theme__off { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme__on { display: inline; }
+  :root:not([data-theme="light"]) .theme__off { display: none; }
+}
 
 /* ---------- lists ---------- */
 
