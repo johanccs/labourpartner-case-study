@@ -124,8 +124,9 @@ h2 {
 }
 
 h3 {
-  font-size: 1.0625rem;
-  margin: 0 0 0.35rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
 }
 
 .label {
