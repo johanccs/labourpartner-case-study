@@ -1,6 +1,6 @@
 # LabourPartner — Case Study
 
-**→ [johanccs.github.io/labourpartner](https://johanccs.github.io/labourpartner)**
+**→ [johanccs.github.io/labourpartner-case-study](https://johanccs.github.io/labourpartner-case-study)**
 
 LabourPartner is a labour-relations compliance platform that guides South African
 employers through discipline, grievance and dismissal procedures, producing
