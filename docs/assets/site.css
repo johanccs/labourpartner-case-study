@@ -271,15 +271,27 @@ p { margin: 0 0 1.15rem; }
    this replaced. */
 .theme {
   position: fixed;
-  top: 0.75rem;
-  right: 0.9rem;
+  top: 50%;
+  right: 1.25rem;
+  transform: translateY(-50%);
   z-index: 10;
   background: var(--paper);
   border: 1px solid var(--rule);
   color: var(--muted);
   font: 400 0.75rem/1 var(--mono);
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.7rem;
   cursor: pointer;
+}
+
+/* The prose measure is centred, so at desktop widths the right margin is empty
+   and a mid-edge control sits in clear space. Below that the measure reaches the
+   edge, so the toggle returns to the corner rather than sitting over the text. */
+@media (max-width: 58rem) {
+  .theme {
+    top: 0.75rem;
+    right: 0.9rem;
+    transform: none;
+  }
 }
 
 .theme:hover {
