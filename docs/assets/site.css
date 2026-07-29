@@ -247,12 +247,6 @@ p { margin: 0 0 1.15rem; }
   border-block: 1px solid var(--rule);
 }
 
-.nav > .sheet {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .nav ol {
   list-style: none;
   display: flex;
@@ -261,7 +255,8 @@ p { margin: 0 0 1.15rem; }
   margin: 0;
   padding: 0.7rem 0;
   font: 400 0.8125rem/1.9 var(--sans);
-  flex: 1;
+  /* keep the last nav item clear of the fixed toggle */
+  padding-right: 4.5rem;
 }
 
 .nav a {
@@ -271,14 +266,19 @@ p { margin: 0 0 1.15rem; }
 
 .nav a:hover { color: var(--ink); }
 
-/* theme toggle */
+/* Theme toggle. Fixed rather than placed in the nav: the nav sits below a tall
+   hero, so a control inside it is off-screen on load — which is exactly the bug
+   this replaced. */
 .theme {
-  flex: none;
-  background: none;
+  position: fixed;
+  top: 0.75rem;
+  right: 0.9rem;
+  z-index: 10;
+  background: var(--paper);
   border: 1px solid var(--rule);
   color: var(--muted);
   font: 400 0.75rem/1 var(--mono);
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   cursor: pointer;
 }
 
