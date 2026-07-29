@@ -430,6 +430,17 @@ p { margin: 0 0 1.15rem; }
   border: 1px solid var(--rule);
 }
 
+/* Screenshots are 1440px wide; at the prose measure they lose the detail that
+   makes them worth showing. Above 74rem there is enough empty margin to the
+   right of the measure to break out into, so they do — capped against the
+   viewport so the page itself never scrolls sideways. */
+@media (min-width: 74rem) {
+  .shot img {
+    width: min(58rem, calc(100vw - 28rem));
+    max-width: none;
+  }
+}
+
 .shot figcaption {
   font: 400 0.875rem/1.6 var(--sans);
   color: var(--muted);
