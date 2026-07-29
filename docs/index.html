@@ -7,7 +7,7 @@
 <meta name="description" content="Case study: LabourPartner, a labour-relations compliance platform that guides South African employers through discipline, grievance and dismissal procedures. Architecture, engineering decisions and known limitations.">
 <!-- Versioned so a stale cached stylesheet can never pair with fresh HTML.
      Bump ?v= whenever site.css changes. -->
-<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/site.css?v=4">
 <script>
   /* Runs before first paint: applying a stored theme after the stylesheet
      would flash the OS theme for a frame. Nothing else on the page needs JS. */
@@ -53,7 +53,8 @@
       <li><a href="#architecture">03 &nbsp;Architecture</a></li>
       <li><a href="#decisions">04 &nbsp;Decisions</a></li>
       <li><a href="#deployment">05 &nbsp;Deployment</a></li>
-      <li><a href="#rigour">06 &nbsp;Rigour</a></li>
+      <li><a href="#screens">06 &nbsp;Screens</a></li>
+      <li><a href="#rigour">07 &nbsp;Rigour</a></li>
     </ol>
   </div>
 </nav>
@@ -85,8 +86,8 @@
       </ul>
 
       <div class="annotation">
-        <b>Known limitation</b>
-        <p>Clause overrides are currently stored globally, not per tenant: <code>ClauseTexts</code> is keyed on component and paragraph only, with no company column. An edit therefore applies across tenants. Tenant-scoped clause overrides are identified future work, and are the next structural change I would make.</p>
+        <b>Who owns the wording</b>
+        <p>The clause library is maintained centrally, by the vendor, not by each employer: the editing toolbar is gated on platform-administrator rights, and <code>ClauseTexts</code> is keyed on component and paragraph with no company column. That is deliberate. Compliance wording is the product, and letting every tenant fork it would mean shipping a compliance guarantee nobody could stand behind. The cost is that an employer with a genuine sector-specific need has no route to it yet — per-tenant overrides would require both a schema change and a way to re-verify a forked clause.</p>
       </div>
     </div>
   </section>
@@ -168,7 +169,8 @@
         <span class="entry__ref">4.3</span>
         <h3>Clause history as a first-class output</h3>
         <p>Every clause edit archives the prior text to <code>ClauseTextVersions</code> with author and timestamp, and any archived version can be restored in place. For a compliance product this is not a convenience feature: the question at arbitration is what the wording said on the day it was issued, and that answer has to be recoverable.</p>
-        <p class="tradeoff"><b>Trade-off</b> &nbsp;Versions accumulate without a retention policy. More significantly, the clause tables carry no company column, so overrides are global rather than tenant-scoped — noted above as the next structural change.</p>
+        <p>Editing is confined to platform administrators. Tenant users consume the library and cannot alter it, which is why the tables carry no company column — there is one canonical wording, and its history is the audit trail for every employer using it.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;Versions accumulate with no retention policy, and a single canonical library means no route to legitimate sector-specific variation. Both are consequences of choosing one defensible wording over many unverified ones.</p>
         <span class="src">LP.Persistence/Entities/ClauseText.cs &#183; ClauseTextVersion.cs</span>
       </div>
 
@@ -301,8 +303,31 @@
     </div>
   </section>
 
-  <section class="block" id="rigour">
+  <section class="block" id="screens">
     <p class="block__num">06</p>
+    <div class="block__body">
+      <h2>Screens</h2>
+      <p>Captured from the application running locally against a demo tenant created for the purpose — a fictional company with a scripted setup, so these can be regenerated when the interface changes and no real employer's data is ever in frame.</p>
+
+      <figure class="shot">
+        <img src="assets/screens/01-login.png" alt="LabourPartner login screen: a dark split layout with the LabourPartner scales mark and the line 'Fair process, every time.' beside a username and password form." width="1440" height="900">
+        <figcaption>Sign-in. The promise on the left is the product thesis in four words — the platform sells procedure, not paperwork.</figcaption>
+      </figure>
+
+      <figure class="shot">
+        <img src="assets/screens/02-contract.png" alt="A permanent employment contract form divided into Part A company particulars, Part B personal particulars, Part C position particulars and Part D conditions of employment." loading="lazy" width="1440" height="900">
+        <figcaption>A permanent employment contract, assembled in parts. Company particulars and address come from the tenant record; Part D onwards is drawn from the clause library rather than typed by the user. This is the inversion in practice — the operator supplies the facts, the system supplies the wording.</figcaption>
+      </figure>
+
+      <figure class="shot">
+        <img src="assets/screens/03-clauses.png" alt="Later sections of the same contract showing general conditions of employment and an acceptance-of-offer block with employer and employee signature fields." loading="lazy" width="1440" height="900">
+        <figcaption>General conditions and acceptance. Every numbered paragraph here is a library clause with its own version history, so the wording a given employee signed remains recoverable after the library moves on.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block" id="rigour">
+    <p class="block__num">07</p>
     <div class="block__body">
       <h2>Rigour</h2>
       <p>Compliance software fails quietly. A wrong clause does not throw an exception — it sits in a contract until someone contests it, so the work has to be verified rather than assumed.</p>

@@ -417,6 +417,25 @@ p { margin: 0 0 1.15rem; }
   margin-top: 1rem;
 }
 
+/* ---------- screenshots ---------- */
+
+.shot {
+  margin: 2.25rem 0 0;
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rule);
+}
+
+.shot figcaption {
+  font: 400 0.875rem/1.6 var(--sans);
+  color: var(--muted);
+  margin-top: 0.9rem;
+}
+
 /* ---------- figures ---------- */
 
 .facts {
