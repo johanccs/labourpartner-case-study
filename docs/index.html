@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabourPartner — Case Study</title>
+<meta name="description" content="Case study: LabourPartner, a labour-relations compliance platform that guides South African employers through discipline, grievance and dismissal procedures. Architecture, engineering decisions and known limitations.">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+
+<header class="hero sheet">
+  <span class="label">Case study</span>
+  <h1>LabourPartner</h1>
+  <p class="lede">A labour-relations compliance platform that guides South African employers through discipline, grievance and dismissal procedures — producing documentation that holds up when it is challenged.</p>
+  <p class="byline">Built by Johan. Architecture, implementation, security audits and deployment carried out with Claude Code (Opus). Application source is private; this page is the case study.</p>
+
+  <figure class="clause">
+    <span class="clause__num">Part D, 4.2 — Hours of work</span>
+    <p class="clause__text">You may also be required to work overtime from time to time <del>as instructed by management</del><ins>, subject to agreement and the limits set out in the Basic Conditions of Employment Act</ins>.</p>
+    <p class="clause__note">One clause, one amendment. Whether that edit strengthens the employer's position or quietly voids it is the entire problem this platform exists to solve.</p>
+  </figure>
+
+  <ul class="badges">
+    <li>.NET 8</li>
+    <li>Angular 18.2</li>
+    <li>EF Core 8.0.10</li>
+    <li>SQL Server</li>
+    <li>Azure</li>
+    <li>JWT + MFA</li>
+  </ul>
+</header>
+
+<nav class="nav" aria-label="Sections">
+  <div class="sheet">
+    <ol>
+      <li><a href="#problem">01 &nbsp;The problem</a></li>
+      <li><a href="#product">02 &nbsp;What it does</a></li>
+      <li><a href="#architecture">03 &nbsp;Architecture</a></li>
+      <li><a href="#decisions">04 &nbsp;Decisions</a></li>
+      <li><a href="#rigour">05 &nbsp;Rigour</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main class="sheet">
+
+  <section class="block" id="problem">
+    <p class="block__num">01</p>
+    <div class="block__body">
+      <h2>The problem</h2>
+      <p>South African employers must follow strict procedure to discipline or dismiss anyone. Under the Labour Relations Act (LRA), a dismissal is fair only if <em>both</em> the reason and the process were fair — the right charge sheet, the right notice periods, a properly constituted hearing, records kept as events happened rather than reconstructed afterwards.</p>
+      <p>One wrong step or one wrong clause turns a justified dismissal into a costly award at the Commission for Conciliation, Mediation and Arbitration (CCMA). The expertise needed to avoid that sits with labour consultants who bill by the hour. Smaller employers cannot retain one, so they improvise with borrowed templates and hope.</p>
+    </div>
+  </section>
+
+  <section class="block" id="product">
+    <p class="block__num">02</p>
+    <div class="block__body">
+      <h2>What it does</h2>
+      <p>The system models the employment lifecycle as guided procedures, not as a document library. The document is an output of having completed the process. That inversion is the point: a template pack gives you paperwork, whereas a procedure gives you a record of having done the thing the paperwork claims.</p>
+
+      <ul class="modules">
+        <li><b>Onboarding and contracts</b><span>Employment contracts, addendums, procedure manuals — assembled per employee from a versioned clause library.</span></li>
+        <li><b>Discipline</b><span>Disciplinary code, procedure, forms and warnings kept as separate concerns, so the code an employer adopted and the warning they issued are independently auditable.</span></li>
+        <li><b>Grievances and hearings</b><span>Grievance intake through to a properly constituted hearing, with the record built as the process runs.</span></li>
+        <li><b>Terminations and retrenchments</b><span>Dismissal and operational-requirement processes, including the consultation steps that make a retrenchment defensible.</span></li>
+        <li><b>Strikes</b><span>Protected and unprotected industrial action, and the notices each requires.</span></li>
+        <li><b>Administration</b><span>Company and user setup, licensing, cart and payments, audit logging.</span></li>
+      </ul>
+
+      <div class="annotation">
+        <b>Known limitation</b>
+        <p>Clause overrides are currently stored globally, not per tenant: <code>ClauseTexts</code> is keyed on component and paragraph only, with no company column. An edit therefore applies across tenants. Tenant-scoped clause overrides are identified future work, and are the next structural change I would make.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="architecture">
+    <p class="block__num">03</p>
+    <div class="block__body">
+      <h2>Architecture</h2>
+      <p>An Angular single-page client against an ASP.NET Core API over SQL Server, split into five projects plus tests. Dependencies point inward: the API layer knows about services, services know about the domain, and nothing in the domain reaches back out.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 640 300" role="img" xmlns="http://www.w3.org/2000/svg">
+          <title>Project layering: LP.Api depends on LP.Services, which depends on LP.Domain. LP.Persistence and LP.Infrastructure supply the domain from outside. LP.Tests spans all layers.</title>
+          <g fill="none" stroke="currentColor" stroke-width="1" font-family="ui-monospace, Consolas, monospace" font-size="12">
+            <rect x="16" y="16" width="440" height="52"></rect>
+            <text x="32" y="38" fill="currentColor" stroke="none">LP.Api</text>
+            <text x="32" y="56" fill="currentColor" stroke="none" opacity="0.6">controllers &#183; authorization &#183; DTOs</text>
+
+            <rect x="16" y="92" width="440" height="52"></rect>
+            <text x="32" y="114" fill="currentColor" stroke="none">LP.Services</text>
+            <text x="32" y="132" fill="currentColor" stroke="none" opacity="0.6">application services &#183; processing &#183; workflows</text>
+
+            <rect x="16" y="168" width="440" height="52"></rect>
+            <text x="32" y="190" fill="currentColor" stroke="none">LP.Domain</text>
+            <text x="32" y="208" fill="currentColor" stroke="none" opacity="0.6">entities &#183; invariants</text>
+
+            <rect x="16" y="244" width="212" height="40"></rect>
+            <text x="32" y="269" fill="currentColor" stroke="none">LP.Persistence</text>
+
+            <rect x="244" y="244" width="212" height="40"></rect>
+            <text x="260" y="269" fill="currentColor" stroke="none">LP.Infrastructure</text>
+
+            <rect x="480" y="16" width="144" height="268" stroke-dasharray="3 3"></rect>
+            <text x="496" y="38" fill="currentColor" stroke="none">LP.Tests</text>
+            <text x="496" y="56" fill="currentColor" stroke="none" opacity="0.6">229 tests</text>
+
+            <path d="M236 68 L236 92" marker-end="url(#a)"></path>
+            <path d="M236 144 L236 168" marker-end="url(#a)"></path>
+            <path d="M122 244 L122 220" marker-end="url(#a)"></path>
+            <path d="M350 244 L350 220" marker-end="url(#a)"></path>
+          </g>
+          <defs>
+            <marker id="a" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+        </svg>
+        <figcaption>Worth noting: the EF entities live in <code>LP.Persistence/Entities</code>, not in <code>LP.Domain</code>. That is a compromise I inherited and kept — moving them would touch every service for a purity gain no user would feel.</figcaption>
+      </figure>
+
+      <p>Authentication is JWT bearer with multi-factor verification and account lockout. Authorization runs on three tiers — <code>User</code>, <code>CompanyAdmin</code>, <code>PlatformAdmin</code> — but the tier alone does not grant cross-company access. Vendor-side reach is governed separately by group and capability membership, so a platform administrator's blast radius is something you configure rather than something they inherit.</p>
+    </div>
+  </section>
+
+  <section class="block" id="decisions">
+    <p class="block__num">04</p>
+    <div class="block__body">
+      <h2>Decisions</h2>
+      <p>Five choices where the constraint mattered more than the technology, each with what it cost.</p>
+
+      <div class="entry">
+        <span class="entry__ref">4.1</span>
+        <h3>Three tiers, then capabilities on top</h3>
+        <p>Role checks alone stopped working once vendor staff and tenant staff needed to see materially different systems rather than more or less of the same one. A tenant administrator manages one company; a platform administrator operates across companies, but only for the capabilities their group grants.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;Two overlapping mechanisms to reason about. <code>AdminType</code> and <code>CompanyAdmin</code> also deliberately share the value <code>1</code>, so existing call sites kept compiling — correct for migration, confusing on first read, and commented as such at the definition.</p>
+        <span class="src">LP.Infrastructure/Helpers/TypeDescriptions.cs</span>
+      </div>
+
+      <div class="entry">
+        <span class="entry__ref">4.2</span>
+        <h3>Migrating password hashes without locking anyone out</h3>
+        <p>Passwords moved from unsalted SHA-256 to PBKDF2-SHA256 at 100,000 iterations with a 16-byte salt, stored as <code>pbkdf2$&lt;iterations&gt;$&lt;salt&gt;$&lt;hash&gt;</code>. Legacy hashes still verify on the old path, so the migration is invisible to users rather than a forced reset.</p>
+        <p>The interesting part was the failure. The password column was 80 characters, which fits a hex SHA-256 digest exactly and truncates a PBKDF2 string silently. The in-memory test database had no length constraint, so the suite stayed green while SQL Server quietly corrupted every new hash. It is now 255, and the reason is written in a comment above the field.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;The legacy verification path has to live on until the last old hash is replaced, and there is no clean signal for when that is.</p>
+        <span class="src">LP.Services/Processing/LoginProcessing.cs &#183; LP.Persistence/Entities/Login.cs</span>
+      </div>
+
+      <div class="entry">
+        <span class="entry__ref">4.3</span>
+        <h3>Clause history as a first-class output</h3>
+        <p>Every clause edit archives the prior text to <code>ClauseTextVersions</code> with author and timestamp, and any archived version can be restored in place. For a compliance product this is not a convenience feature: the question at arbitration is what the wording said on the day it was issued, and that answer has to be recoverable.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;Versions accumulate without a retention policy. More significantly, the clause tables carry no company column, so overrides are global rather than tenant-scoped — noted above as the next structural change.</p>
+        <span class="src">LP.Persistence/Entities/ClauseText.cs &#183; ClauseTextVersion.cs</span>
+      </div>
+
+      <div class="entry">
+        <span class="entry__ref">4.4</span>
+        <h3>Tenant isolation checked at the boundary</h3>
+        <p>A valid token proves who you are, not what you may touch. Cart and payment operations compare the caller's company against the record's before acting, and refuse rather than filter: <code>if (!User.IsPlatformAdmin() &amp;&amp; User.GetCompanyId() != companyId) return Forbid();</code></p>
+        <p>These checks were added after an audit found endpoints that authenticated the caller and then trusted an identifier from the request body. Authenticated is not authorized, and an ownership check is the cheapest place to prove it.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;Enforced per controller rather than centrally, so it holds only as long as every new endpoint remembers. A filter or policy would be structurally safer.</p>
+        <span class="src">LP.Api/Controllers/CartController.cs &#183; PaymentController.cs</span>
+      </div>
+
+      <div class="entry">
+        <span class="entry__ref">4.5</span>
+        <h3>An AI feature is an operational liability first</h3>
+        <p>A language model checks edited clause wording before it is issued and flags text that weakens the employer's position. Useful — and, shipped carelessly, an open invoice. The verification endpoint requires authentication and caps input at 8,000 characters, both added before a production API key existed rather than after a bill arrived.</p>
+        <p class="tradeoff"><b>Trade-off</b> &nbsp;A third-party model in the path of a compliance feature is a dependency on someone else's uptime, pricing and behaviour. It advises; it does not approve. The employer remains the decision-maker, which is the only defensible position for automated legal advice.</p>
+        <span class="src">LP.Api/Controllers/WordingVerificationController.cs</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="rigour">
+    <p class="block__num">05</p>
+    <div class="block__body">
+      <h2>Rigour</h2>
+      <p>Compliance software fails quietly. A wrong clause does not throw an exception — it sits in a contract until someone contests it, so the work has to be verified rather than assumed.</p>
+
+      <table class="facts">
+        <tbody>
+          <tr><th>Backend tests</th><td>229 passing, 0 failing. Controllers, services, processing and infrastructure, including authorization tests written to fail against the pre-fix code.</td></tr>
+          <tr><th>Deployment</th><td>GitHub Actions to Azure App Service for the API and Azure Static Web Apps for the client, with separate workflows for infrastructure and database migrations.</td></tr>
+          <tr><th>Security</th><td>An audit before launch found ten endpoints reachable unauthenticated, missing tenant ownership checks, and an unauthenticated AI endpoint. All closed and verified returning 401 in production.</td></tr>
+          <tr><th>Verified, not assumed</th><td>Every claim on this page was checked against the source or the database while writing it. The clause-scoping limitation above was found that way, and stated rather than dropped.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="annotation">
+        <b>Operational note</b>
+        <p>A green pipeline is not a live deployment. App Service takes one to three minutes to complete a slot swap, which is long enough to mistake a successful deploy for a failed one and roll back something that was working.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot sheet">
+  <p>LabourPartner is a private commercial product. Its source is not published; this page is the case study.</p>
+  <p><a href="https://github.com/johanccs">github.com/johanccs</a></p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,393 @@
+/* LabourPartner case study — a marked-up legal instrument.
+   Palette: ink and red-pen on warm paper. Type: Georgia (document face),
+   system sans for labels, mono for clause numbers. No external assets. */
+
+:root {
+  --paper: #fbfaf8;
+  --ink: #14171c;
+  --muted: #5a6270;
+  --rule: #e1ded8;
+  --surface: #f4f2ed;
+  --pen: #b0322a;
+  --cite: #2b4a7e;
+
+  --measure: 40rem;
+  --gutter: 5.5rem;
+  --wide: 64rem;
+
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0e1114;
+    --ink: #e8e6e1;
+    --muted: #8e97a5;
+    --rule: #262a30;
+    --surface: #16191e;
+    --pen: #e0645a;
+    --cite: #7fa6e0;
+  }
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1.0625rem/1.7 var(--serif);
+  font-synthesis-weight: none;
+}
+
+img, svg { max-width: 100%; height: auto; }
+
+a {
+  color: var(--cite);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ---------- layout: gutter + measure ---------- */
+
+.sheet {
+  max-width: calc(var(--gutter) + var(--measure) + 3rem);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+.block {
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr);
+  column-gap: 1.5rem;
+  padding-block: 3.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.block:first-of-type { border-top: 0; }
+
+.block__num {
+  font: 400 0.8125rem/1.9 var(--mono);
+  color: var(--pen);
+  letter-spacing: 0.02em;
+  padding-top: 0.3rem;
+}
+
+.block__body > :first-child { margin-top: 0; }
+.block__body > :last-child { margin-bottom: 0; }
+
+/* single-column below the gutter's usable width */
+@media (max-width: 46rem) {
+  .block {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.5rem;
+    padding-block: 2.5rem;
+  }
+  .block__num { padding-top: 0; }
+}
+
+/* ---------- type ---------- */
+
+h1, h2, h3 {
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 9vw, 3.75rem);
+  margin: 0 0 1rem;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4.5vw, 1.875rem);
+  margin: 0 0 1.1rem;
+}
+
+h3 {
+  font-size: 1.0625rem;
+  margin: 0 0 0.35rem;
+}
+
+.label {
+  display: block;
+  font: 500 0.6875rem/1.4 var(--sans);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.5rem;
+}
+
+.lede {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.byline {
+  font: 400 0.9375rem/1.65 var(--sans);
+  color: var(--muted);
+  margin: 0;
+}
+
+p { margin: 0 0 1.15rem; }
+
+/* ---------- hero ---------- */
+
+.hero { padding-block: clamp(3.5rem, 12vh, 6.5rem) 3rem; }
+
+/* ---------- the clause specimen: the page's signature ---------- */
+
+.clause {
+  margin: 2.5rem 0 0;
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: var(--surface);
+  border-left: 2px solid var(--pen);
+}
+
+.clause__num {
+  font: 400 0.8125rem/1 var(--mono);
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.clause__text {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.clause del {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--pen);
+  text-decoration-thickness: 1px;
+}
+
+.clause ins {
+  color: var(--pen);
+  text-decoration: none;
+  border-bottom: 1px solid var(--pen);
+}
+
+.clause__note {
+  font: 400 0.8125rem/1.6 var(--sans);
+  color: var(--muted);
+  margin: 1.1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---------- badges ---------- */
+
+.badges {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.badges li {
+  font: 400 0.75rem/1 var(--mono);
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 0.4rem 0.55rem;
+}
+
+/* ---------- nav ---------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-block: 1px solid var(--rule);
+}
+
+.nav ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin: 0;
+  padding: 0.7rem 0;
+  font: 400 0.8125rem/1.9 var(--sans);
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav a:hover { color: var(--ink); }
+
+/* ---------- lists ---------- */
+
+.modules {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+}
+
+.modules li {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.modules b {
+  font-weight: 400;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  display: block;
+  color: var(--ink);
+}
+
+.modules span {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+/* ---------- margin annotation ---------- */
+
+.annotation {
+  margin: 2rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--pen);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.annotation b {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pen);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.annotation p { margin: 0; }
+
+/* ---------- decision entries ---------- */
+
+.entry {
+  padding-block: 1.75rem;
+  border-top: 1px solid var(--rule);
+}
+
+.entry:first-of-type { padding-top: 0.75rem; }
+
+.entry__ref {
+  font: 400 0.75rem/1 var(--mono);
+  color: var(--pen);
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.entry p { margin: 0 0 0.8rem; }
+.entry p:last-child { margin-bottom: 0; }
+
+.tradeoff {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.tradeoff b {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.src {
+  font: 400 0.75rem/1.6 var(--mono);
+  color: var(--muted);
+  display: block;
+  margin-top: 0.7rem;
+}
+
+/* ---------- diagram ---------- */
+
+.diagram {
+  margin: 2rem 0 0;
+  overflow-x: auto;
+}
+
+.diagram svg {
+  display: block;
+  min-width: 30rem;
+  color: var(--ink);
+}
+
+.diagram figcaption {
+  font: 400 0.875rem/1.6 var(--sans);
+  color: var(--muted);
+  margin-top: 1rem;
+}
+
+/* ---------- figures ---------- */
+
+.facts {
+  margin: 1.5rem 0 0;
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+}
+
+.facts th,
+.facts td {
+  text-align: left;
+  padding: 0.7rem 0.75rem 0.7rem 0;
+  border-top: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+.facts th {
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  width: 11rem;
+}
+
+.facts td { color: var(--ink); }
+
+/* ---------- footer ---------- */
+
+.foot {
+  border-top: 1px solid var(--rule);
+  padding-block: 2.5rem 4rem;
+  font: 400 0.875rem/1.7 var(--sans);
+  color: var(--muted);
+}
+
+.foot p { margin: 0 0 0.5rem; }
+.foot p:last-child { margin-bottom: 0; }
