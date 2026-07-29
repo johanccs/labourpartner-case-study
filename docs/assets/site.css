@@ -109,6 +109,11 @@ a {
 .block__body > :first-child { margin-top: 0; }
 .block__body > :last-child { margin-bottom: 0; }
 
+/* A subheading directly inside a block follows a figure or paragraph and needs
+   air above it. Scoped to direct children so the h3 inside .entry — which sits
+   under its own clause reference — keeps its tight spacing. */
+.block__body > h3 { margin-top: 2.75rem; }
+
 /* single-column below the gutter's usable width */
 @media (max-width: 46rem) {
   .block {
